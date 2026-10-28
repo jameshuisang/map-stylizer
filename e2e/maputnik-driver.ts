@@ -30,6 +30,7 @@ export class MaputnikDriver {
 
     setupMockBackedResponses: async () => {
       const styleFixtures = [
+        "empty-style.json",
         "example-style.json",
         "example-layer-style.json",
         "geojson-style.json",
@@ -70,6 +71,37 @@ export class MaputnikDriver {
 
     modal: this.modalDriver.when,
 
+    /** Opens a secondary action through its intentional toolbar disclosure. */
+    openTool: async (tool: "sources" | "settings" | "global-state" | "code-editor" | "debug" | "shortcuts") => {
+      const menu = tool === "sources" || tool === "settings" ? "map" : "tools";
+      await this.helper.when.click(`nav:${menu}-menu`);
+      await this.helper.when.click(`nav:${tool}`);
+    },
+
+    revealImportUrl: async () => this.helper.when.clickByText("Import from a URL"),
+
+    openMapMenu: async () => this.helper.when.click("nav:map-menu"),
+    openToolsMenu: async () => this.helper.when.click("nav:tools-menu"),
+    setViewMode: async (mode: "map" | "inspect") => {
+      await this.helper.when.click("nav:map-menu");
+      await this.helper.when.click(`view-option:${mode}`);
+    },
+    openLanguageMenu: async () => {
+      await this.helper.when.click("nav:tools-menu");
+      await this.helper.when.click("nav:language");
+    },
+    setLanguage: async (language: string) => {
+      await this.when.openLanguageMenu();
+      await this.helper.when.click(`language:${language}`);
+    },
+
+    /** Reveals technical details without changing default workspace disclosure. */
+    revealLayerEditorGroup: async (title: string) => {
+      const group = this.helper.get.elementByTestId("layer-editor-group:" + title);
+      const button = group.getByRole("button");
+      if (await button.getAttribute("aria-expanded") !== "true") await button.click();
+    },
+
     deleteLayer: async (id: string, control: "menu" | "trash" = "menu") => {
       if (control === "trash") {
         await this.helper.when.hover("layer-list-item:" + id);
@@ -97,6 +129,7 @@ export class MaputnikDriver {
       zoom?: number
     ) => {
       const styleFileByKey: Record<string, string> = {
+        "": "empty-style.json",
         geojson: "geojson-style.json",
         raster: "raster-style.json",
         both: "geojson-raster-style.json",
@@ -109,7 +142,7 @@ export class MaputnikDriver {
       };
 
       const url = new URL(baseUrl);
-      if (styleProperties && styleFileByKey[styleProperties]) {
+      if (styleFileByKey[styleProperties]) {
         url.searchParams.set("style", baseUrl + styleFileByKey[styleProperties]);
       }
       if (zoom) {
@@ -118,13 +151,12 @@ export class MaputnikDriver {
 
       await this.helper.when.visit(url.toString());
 
-      const toolbarLink = this.helper.get.elementByTestId("toolbar:link");
-      await toolbarLink.scrollIntoViewIfNeeded();
-      await this.then(toolbarLink).shouldBeVisible();
+      await this.then(this.helper.get.elementByTestId("nav:open")).shouldBeVisible();
     },
 
     openASecondStyleWithDifferentZoomAndCenter: async () => {
-      await this.helper.when.clickButtonByName("Open");
+      await this.helper.when.click("nav:open");
+      await this.when.revealImportUrl();
       const input = this.helper.get.elementByTestId("modal:open.url.input");
       await input.fill("http://localhost:8888/example-style-with-zoom-5-and-center-50-50.json");
       await input.press("Enter");
@@ -289,6 +321,7 @@ export class MaputnikDriver {
     },
 
     addFilter: async () => {
+      await this.when.revealLayerEditorGroup("Filter");
       const button = this.helper.get.elementByTestId("layer-filter-button");
       await button.scrollIntoViewIfNeeded();
       await button.click({ force: true });
@@ -330,6 +363,11 @@ export class MaputnikDriver {
 
     /** Sets a plain string spec field (e.g. a pattern), which has no dedicated input test id. */
     setStringValue: async (fieldName: string, value: string) => {
+      if (!await this.helper.get.elementByTestId("spec-field:" + fieldName).isVisible()) {
+        for (const button of await this.helper.get.element(".workspace-more-properties[aria-expanded='false']").all()) {
+          if (await button.isVisible()) await button.click();
+        }
+      }
       const input = this.helper.get.elementByTestId("spec-field:" + fieldName).locator("input.maputnik-string");
       await input.fill(value);
       await input.blur();
@@ -341,6 +379,7 @@ export class MaputnikDriver {
      * well-formed fragment stays well-formed.
      */
     appendToJsonEditorLine: async (lineText: string, text: string) => {
+      await this.when.revealLayerEditorGroup("JSON Editor");
       await this.helper.when.clickByText(lineText);
       await this.helper.when.typeKeys("{end}");
       await this.helper.when.typeText(text);

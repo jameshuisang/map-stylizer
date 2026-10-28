@@ -1,311 +1,128 @@
 import React from "react";
-import classnames from "classnames";
-import {detect} from "detect-browser";
-
-import {
-  MdOpenInBrowser,
-  MdSettings,
-  MdLayers,
-  MdHelpOutline,
-  MdFindInPage,
-  MdLanguage,
-  MdSave,
-  MdPublic,
-  MdCode
-} from "react-icons/md";
-import pkgJson from "../../package.json";
-//@ts-ignore
-import maputnikLogo from "maputnik-design/logos/logo-color.svg?inline";
+import { detect } from "detect-browser";
 import { withTranslation, type WithTranslation } from "react-i18next";
+import { MdArrowDownward, MdChevronRight, MdExpandMore, MdFileUpload, MdMap, MdMoreHoriz, MdUndo, MdRedo } from "react-icons/md";
 import { supportedLanguages } from "../i18n";
 import type { OnStyleChangedCallback } from "../libs/definitions";
+import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent } from "./toolcraft";
 
-// This is required because of <https://stackoverflow.com/a/49846426>, there isn't another way to detect support that I'm aware of.
 const browser = detect();
-const colorAccessibilityFiltersEnabled = ["chrome", "firefox"].indexOf(browser!.name) > -1;
-
+const colorAccessibilityFiltersEnabled = ["chrome", "firefox"].includes(browser?.name ?? "");
 export type ModalTypes = "settings" | "sources" | "open" | "shortcuts" | "export" | "debug" | "globalState" | "codeEditor";
-
-type IconTextProps = {
-  children?: React.ReactNode
-};
-
-
-class IconText extends React.Component<IconTextProps> {
-  render() {
-    return <span className="maputnik-icon-text">{this.props.children}</span>;
-  }
-}
-
-type ToolbarLinkProps = {
-  className?: string
-  children?: React.ReactNode
-  href?: string
-  wdKey?: string
-};
-
-class ToolbarLink extends React.Component<ToolbarLinkProps> {
-  render() {
-    return <a
-      className={classnames("maputnik-toolbar-link", this.props.className)}
-      href={this.props.href}
-      rel="noopener noreferrer"
-      target="_blank"
-      data-wd-key={this.props.wdKey ?? "toolbar:link"}
-    >
-      {this.props.children}
-    </a>;
-  }
-}
-
-type ToolbarSelectProps = {
-  children?: React.ReactNode
-  wdKey?: string
-};
-
-class ToolbarSelect extends React.Component<ToolbarSelectProps> {
-  render() {
-    return <div
-      className='maputnik-toolbar-select'
-      data-wd-key={this.props.wdKey}
-    >
-      {this.props.children}
-    </div>;
-  }
-}
-
-type ToolbarActionProps = {
-  children?: React.ReactNode
-  onClick?(...args: unknown[]): unknown
-  wdKey?: string
-};
-
-class ToolbarAction extends React.Component<ToolbarActionProps> {
-  render() {
-    return <button
-      className='maputnik-toolbar-action'
-      data-wd-key={this.props.wdKey}
-      onClick={this.props.onClick}
-    >
-      {this.props.children}
-    </button>;
-  }
-}
-
 export type MapState = "map" | "inspect" | "filter-achromatopsia" | "filter-deuteranopia" | "filter-protanopia" | "filter-tritanopia";
 
-type AppToolbarInternalProps = {
+export type AppToolbarProps = {
   mapStyle: object
   inspectModeEnabled: boolean
   onStyleChanged: OnStyleChangedCallback
-  // A new style has been uploaded
   onStyleOpen: OnStyleChangedCallback
-  // A dict of source id's and the available source layers
   sources: object
   children?: React.ReactNode
   onToggleModal(modal: ModalTypes): void
   onSetMapState(mapState: MapState): unknown
   mapState?: MapState
   renderer?: string
-} & WithTranslation;
+  documentName?: string
+  documentKind?: "outdoor" | "indoor"
+  onUndo?(): void
+  onRedo?(): void
+  canUndo?: boolean
+  canRedo?: boolean
+};
 
-class AppToolbarInternal extends React.Component<AppToolbarInternalProps> {
-  state = {
-    isOpen: {
-      settings: false,
-      sources: false,
-      open: false,
-      add: false,
-      export: false,
-    }
+type Props = AppToolbarProps & WithTranslation;
+
+function AppToolbarInternal(props: Props) {
+  const { t } = props;
+  const kind = props.documentKind ?? "outdoor";
+  const documentName = props.documentName || (props.mapStyle as { name?: string }).name || t("Untitled style");
+  const skipTo = (target: string) => {
+    const selector = target === "map" ? ".maplibregl-canvas, .indoor-canvas-host canvas" : target === "layer-list" ? "#skip-target-layer-list, .indoor-categories button" : "#skip-target-layer-editor, .indoor-inspector input";
+    const element = document.querySelector<HTMLElement>(selector);
+    if (element?.tagName === "CANVAS" && element.tabIndex < 0) element.tabIndex = -1;
+    element?.focus();
   };
+  const modalItem = (modal: ModalTypes, label: string, testId: string) => <DropdownMenuItem
+    key={modal}
+    data-wd-key={testId}
+    onClick={() => props.onToggleModal(modal)}
+  >{label}<MdChevronRight aria-hidden="true" /></DropdownMenuItem>;
 
-  handleSelection(val: MapState) {
-    this.props.onSetMapState(val);
-  }
-
-  handleLanguageChange(val: string) {
-    this.props.i18n.changeLanguage(val);
-  }
-
-  onSkip = (target: string) => {
-    if (target === "map") {
-      (document.querySelector(".maplibregl-canvas") as HTMLCanvasElement).focus();
-    }
-    else {
-      const el = document.querySelector("#skip-target-"+target) as HTMLButtonElement;
-      el.focus();
-    }
-  };
-
-  render() {
-    const t = this.props.t;
-    const views = [
-      {
-        id: "map",
-        group: "general",
-        title: t("Map"),
-      },
-      {
-        id: "inspect",
-        group: "general",
-        title: t("Inspect"),
-        disabled: this.props.renderer === "ol",
-      },
-      {
-        id: "filter-deuteranopia",
-        group: "color-accessibility",
-        title: t("Deuteranopia filter"),
-        disabled: !colorAccessibilityFiltersEnabled,
-      },
-      {
-        id: "filter-protanopia",
-        group: "color-accessibility",
-        title: t("Protanopia filter"),
-        disabled: !colorAccessibilityFiltersEnabled,
-      },
-      {
-        id: "filter-tritanopia",
-        group: "color-accessibility",
-        title: t("Tritanopia filter"),
-        disabled: !colorAccessibilityFiltersEnabled,
-      },
-      {
-        id: "filter-achromatopsia",
-        group: "color-accessibility",
-        title: t("Achromatopsia filter"),
-        disabled: !colorAccessibilityFiltersEnabled,
-      },
-    ];
-
-    const currentView = views.find((view) => {
-      return view.id === this.props.mapState;
-    });
-
-    return <nav className='maputnik-toolbar'>
-      <div className="maputnik-toolbar__inner">
-        <div
-          className="maputnik-toolbar-logo-container"
-        >
-          {/* Keyboard accessible quick links */}
-          <button
-            data-wd-key="root:skip:layer-list"
-            className="maputnik-toolbar-skip"
-            onClick={_e => this.onSkip("layer-list")}
-          >
-            {t("Layers list")}
-          </button>
-          <button
-            data-wd-key="root:skip:layer-editor"
-            className="maputnik-toolbar-skip"
-            onClick={_e => this.onSkip("layer-editor")}
-          >
-            {t("Layer editor")}
-          </button>
-          <button
-            data-wd-key="root:skip:map-view"
-            className="maputnik-toolbar-skip"
-            onClick={_e => this.onSkip("map")}
-          >
-            {t("Map view")}
-          </button>
-          <a
-            className="maputnik-toolbar-logo"
-            target="_blank"
-            rel="noreferrer noopener"
-            href={pkgJson.repository.url}
-          >
-            <img src={maputnikLogo} alt="" />
-            <h1>
-              <span className="maputnik-toolbar-name">{pkgJson.displayName}</span>
-              <span className="maputnik-toolbar-version">v{pkgJson.version}</span>
-            </h1>
-          </a>
-        </div>
-        <div className="maputnik-toolbar__actions" role="navigation" aria-label="Toolbar">
-          <ToolbarLink wdKey="nav:minimal" href={`${import.meta.env.BASE_URL}minimal.html`}>Minimal</ToolbarLink>
-          <ToolbarAction wdKey="nav:open" onClick={() => this.props.onToggleModal("open")}>
-            <MdOpenInBrowser />
-            <IconText>{t("Open")}</IconText>
-          </ToolbarAction>
-          <ToolbarAction wdKey="nav:export" onClick={() => this.props.onToggleModal("export")}>
-            <MdSave />
-            <IconText>{t("Save")}</IconText>
-          </ToolbarAction>
-          <ToolbarAction wdKey="nav:code-editor" onClick={() => this.props.onToggleModal("codeEditor")}>
-            <MdCode />
-            <IconText>{t("Code Editor")}</IconText>
-          </ToolbarAction>
-          <ToolbarAction wdKey="nav:sources" onClick={() => this.props.onToggleModal("sources")}>
-            <MdLayers />
-            <IconText>{t("Data Sources")}</IconText>
-          </ToolbarAction>
-          <ToolbarAction wdKey="nav:settings" onClick={() => this.props.onToggleModal("settings")}>
-            <MdSettings />
-            <IconText>{t("Style Settings")}</IconText>
-          </ToolbarAction>
-          <ToolbarAction wdKey="nav:global-state" onClick={() => this.props.onToggleModal("globalState")}>
-            <MdPublic />
-            <IconText>{t("Global State")}</IconText>
-          </ToolbarAction>
-
-          <ToolbarSelect wdKey="nav:inspect">
-            <MdFindInPage />
-            <IconText>{t("View")}
-              <select
-                className="maputnik-select"
-                data-wd-key="maputnik-select"
-                onChange={(e) => this.handleSelection(e.target.value as MapState)}
-                value={currentView?.id}
-              >
-                {views.filter(v => v.group === "general").map((item) => {
-                  return (
-                    <option key={item.id} value={item.id} disabled={item.disabled} data-wd-key={item.id}>
-                      {item.title}
-                    </option>
-                  );
-                })}
-                <optgroup label={t("Color accessibility")}>
-                  {views.filter(v => v.group === "color-accessibility").map((item) => {
-                    return (
-                      <option key={item.id} value={item.id} disabled={item.disabled}>
-                        {item.title}
-                      </option>
-                    );
-                  })}
-                </optgroup>
-              </select>
-            </IconText>
-          </ToolbarSelect>
-
-          <ToolbarSelect wdKey="nav:language">
-            <MdLanguage />
-            <IconText>Language
-              <select
-                className="maputnik-select"
-                data-wd-key="maputnik-lang-select"
-                onChange={(e) => this.handleLanguageChange(e.target.value)}
-                value={this.props.i18n.language}
-              >
-                {Object.entries(supportedLanguages).map(([code, name]) => {
-                  return (
-                    <option key={code} value={code}>
-                      {name}
-                    </option>
-                  );
-                })}
-              </select>
-            </IconText>
-          </ToolbarSelect>
-
-          <ToolbarLink href={"https://github.com/maplibre/maputnik/wiki"}>
-            <MdHelpOutline />
-            <IconText>{t("Help")}</IconText>
-          </ToolbarLink>
-        </div>
-      </div>
-    </nav>;
-  }
+  return <nav className="maputnik-toolbar workspace-toolbar" aria-label={t("Editor toolbar")}>
+    <div className="workspace-toolbar__brand">
+      <button data-wd-key="root:skip:layer-list" className="maputnik-toolbar-skip" onClick={() => skipTo("layer-list")}>{t("Layers list")}</button>
+      <button data-wd-key="root:skip:layer-editor" className="maputnik-toolbar-skip" onClick={() => skipTo("layer-editor")}>{t("Layer editor")}</button>
+      <button data-wd-key="root:skip:map-view" className="maputnik-toolbar-skip" onClick={() => skipTo("map")}>{t("Map view")}</button>
+      <MdMap className="workspace-toolbar__mark" aria-hidden="true" />
+      <span>Map Stylizer</span>
+    </div>
+    <div className="workspace-toolbar__document">
+      <span className="workspace-toolbar__document-name" title={documentName}>{documentName}</span>
+      <span className="workspace-toolbar__format">{kind === "indoor" ? t("Indoor") : t("Outdoor")}</span>
+    </div>
+    <div className="workspace-toolbar__actions" role="navigation" aria-label={t("Toolbar")}>
+      {props.onUndo && <Button variant="ghost" size="icon-sm" aria-label={t("Undo")} title={t("Undo")} disabled={!props.canUndo} onClick={props.onUndo}><MdUndo aria-hidden="true" /></Button>}
+      {props.onRedo && <Button variant="ghost" size="icon-sm" aria-label={t("Redo")} title={t("Redo")} disabled={!props.canRedo} onClick={props.onRedo}><MdRedo aria-hidden="true" /></Button>}
+      {kind === "outdoor" && <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="sm" data-wd-key="nav:map-menu" />}>
+          {t("Map")}<MdExpandMore aria-hidden="true" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="workspace-menu">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>{t("Preview")}</DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={props.mapState ?? "map"} onValueChange={value => props.onSetMapState(value as MapState)} data-wd-key="nav:inspect">
+              <DropdownMenuRadioItem value="map" data-wd-key="view-option:map">{t("Map")}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="inspect" data-wd-key="view-option:inspect" disabled={props.renderer === "ol"}>{t("Inspect")}</DropdownMenuRadioItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger data-wd-key="nav:accessibility">{t("Color accessibility")}</DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="workspace-menu">
+                  {["deuteranopia", "protanopia", "tritanopia", "achromatopsia"].map(filter => <DropdownMenuRadioItem key={filter} value={`filter-${filter}`} disabled={!colorAccessibilityFiltersEnabled}>{t(`${filter[0].toUpperCase()}${filter.slice(1)} filter`)}</DropdownMenuRadioItem>)}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuGroup>
+          {kind === "outdoor" && <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>{t("Map configuration")}</DropdownMenuLabel>
+              {modalItem("sources", t("Data Sources"), "nav:sources")}
+              {modalItem("settings", t("Style Settings"), "nav:settings")}
+            </DropdownMenuGroup>
+          </>}
+        </DropdownMenuContent>
+      </DropdownMenu>}
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="sm" data-wd-key="nav:tools-menu" />}>
+          <MdMoreHoriz aria-hidden="true" /><span>{t("Tools")}</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="workspace-menu">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>{t("Advanced editing")}</DropdownMenuLabel>
+            {modalItem("codeEditor", t("Edit JSON"), "nav:code-editor")}
+            {kind === "outdoor" && modalItem("globalState", t("Global state"), "nav:global-state")}
+            {kind === "outdoor" && modalItem("debug", t("Map diagnostics"), "nav:debug")}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>{t("Workspace")}</DropdownMenuLabel>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger data-wd-key="nav:language">{t("Language")}</DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="workspace-menu">
+                <DropdownMenuRadioGroup value={props.i18n.resolvedLanguage ?? props.i18n.language} onValueChange={value => { void props.i18n.changeLanguage(value); }}>
+                  {Object.entries(supportedLanguages).map(([code, name]) => <DropdownMenuRadioItem key={code} value={code} data-wd-key={`language:${code}`}>{name}</DropdownMenuRadioItem>)}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            {kind === "outdoor" && modalItem("shortcuts", t("Keyboard shortcuts"), "nav:shortcuts")}
+            <DropdownMenuItem render={<a href={kind === "indoor" ? "https://developer.mappedin.com/docs/tools/mappedin-studio" : "https://github.com/maplibre/maputnik/wiki"} target="_blank" rel="noreferrer" />} data-wd-key="toolbar:link">{t("Help and documentation")}<MdChevronRight aria-hidden="true" /></DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <div className="workspace-toolbar__divider" />
+      <Button variant="outline" size="sm" data-wd-key="nav:open" onClick={() => props.onToggleModal("open")}><MdFileUpload aria-hidden="true" />{t("Import")}</Button>
+      <Button size="sm" data-wd-key="nav:export" onClick={() => props.onToggleModal("export")}><MdArrowDownward aria-hidden="true" />{t("Export JSON")}</Button>
+    </div>
+  </nav>;
 }
 
 export const AppToolbar = withTranslation()(AppToolbarInternal);

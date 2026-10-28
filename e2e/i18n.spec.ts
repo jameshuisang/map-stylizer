@@ -1,4 +1,4 @@
-import { beforeEach, describe, test } from "./utils/fixtures";
+import { beforeEach, describe, test, expect } from "./utils/fixtures";
 import { MaputnikDriver } from "./maputnik-driver";
 
 describe("i18n", () => {
@@ -12,12 +12,14 @@ describe("i18n", () => {
   describe("language detector", () => {
     test("English", async () => {
       await when.visit("?lng=en");
-      await then(get.elementByTestId("maputnik-lang-select")).shouldHaveValue("en");
+      await when.openLanguageMenu();
+      await expect(get.elementByTestId("language:en")).toHaveAttribute("aria-checked", "true");
     });
 
     test("Japanese", async () => {
       await when.visit("?lng=ja");
-      await then(get.elementByTestId("maputnik-lang-select")).shouldHaveValue("ja");
+      await when.openLanguageMenu();
+      await expect(get.elementByTestId("language:ja")).toHaveAttribute("aria-checked", "true");
     });
   });
 
@@ -27,11 +29,10 @@ describe("i18n", () => {
     });
 
     test("the language switcher switches to Japanese", async () => {
-      const selector = "maputnik-lang-select";
-      await then(get.elementByTestId(selector)).shouldExist();
-      await when.select(selector, "ja");
-      await then(get.elementByTestId(selector)).shouldHaveValue("ja");
+      await when.setLanguage("ja");
 
+      await when.typeKeys("{esc}");
+      await when.openMapMenu();
       await then(get.elementByTestId("nav:settings")).shouldHaveText("スタイル設定");
     });
   });

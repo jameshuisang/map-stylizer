@@ -1,0 +1,30 @@
+.indoor-workspace { color: #1d1d1f; }
+.indoor-categories { padding: 20px 18px; }
+.indoor-section-heading { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; gap: 12px; margin-bottom: 16px; }
+.indoor-section-heading > span:last-child { color: #6e6e73; font-size: 11px; font-weight: 400; }
+.indoor-categories nav { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.indoor-categories nav button { justify-content: flex-start; }
+.indoor-categories nav button[aria-pressed=true] { background: #e8e8ed; color: #1d1d1f; }
+.indoor-categories p,.indoor-hint { color: #6e6e73; font-size: 12px; line-height: 1.6; }
+.indoor-inspector { padding: 22px 20px; }
+.indoor-inspector h2 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.indoor-inspector > .indoor-hint { margin-bottom: 24px; }
+.indoor-color-field { margin-bottom: 18px; }
+.indoor-color-field > label { display: block; font-size: 12px; margin-bottom: 8px; }
+.indoor-color-field > div { display: flex; gap: 8px; align-items: center; }
+.indoor-color-field input[type=color] { width: 44px; height: 44px; min-width: 44px; border: 1px solid #e8e8ed; padding: 4px; border-radius: 6px; background: white; cursor: pointer; }
+.indoor-color-field input:not([type=color]) { width: 100%; min-width: 0; font-variant-numeric: tabular-nums; }
+.indoor-number-field { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 12px 0; font-size: 12px; }
+.indoor-number-field input { width: 120px; }
+.indoor-canvas { position: relative; height: 100%; min-height: 280px; background: #fbfbfd; }
+.indoor-canvas-host { position: absolute; inset: 0; }
+.indoor-map-controls { position: absolute; top: 20px; left: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+.indoor-map-controls > div { padding: 10px; border: 1px solid #e8e8ed; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px #00000008; width: 190px; }
+.indoor-map-controls label { display: block; margin-bottom: 6px; font-size: 11px; color: #6e6e73; }
+.indoor-map-controls button { width: 100%; }
+.indoor-map-status { position: absolute; top: 42%; left: 50%; transform: translate(-50%,-50%); background: white; padding: 24px; border: 1px solid #e8e8ed; border-radius: 10px; max-width: 440px; line-height: 1.6; font-size: 13px; }
+.indoor-map-caption { position: absolute; right: 16px; bottom: 42px; font-size: 11px; padding: 8px 10px; border-radius: 6px; background: #ffffffea; color: #6e6e73; pointer-events: none; }
+.indoor-map-caption span { margin: 0 6px; }
+.indoor-error { color: #b42318; font-size: 12px; line-height: 1.5; }
+.indoor-sr-only { position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%); }
+@media (max-width: 800px) { .indoor-map-controls { top: 10px; left: 10px; right: 10px; } .indoor-map-controls > div { width: auto; min-width: 0; flex:1; } .indoor-inspector input { font-size: 16px; } }

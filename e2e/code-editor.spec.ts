@@ -10,14 +10,14 @@ describe("code editor", () => {
   });
 
   test("open code editor", async () => {
-    await when.click("nav:code-editor");
+    await when.openTool("code-editor");
     await then(get.element(".maputnik-code-editor")).shouldExist();
   });
 
   test("closes code editor", async () => {
-    await when.click("nav:code-editor");
+    await when.openTool("code-editor");
     await then(get.element(".maputnik-code-editor")).shouldExist();
-    await when.click("nav:code-editor");
+    await when.openTool("code-editor");
     await then(get.element(".maputnik-code-editor")).shouldNotExist();
   });
 });

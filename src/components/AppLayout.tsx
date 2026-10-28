@@ -4,13 +4,11 @@ import { ScrollContainer } from "./ScrollContainer";
 import { useTranslation } from "react-i18next";
 import { IconContext } from "react-icons";
 
-const DEFAULT_LIST_WIDTH = 200;
-const DEFAULT_DRAWER_WIDTH = 370;
-const DEFAULT_SIDEBAR_WIDTH = DEFAULT_LIST_WIDTH + DEFAULT_DRAWER_WIDTH;
+const DEFAULT_SIDEBAR_WIDTH = 360;
 const PANEL_STYLE: React.CSSProperties = { overflow: "hidden" };
 
-const SIDEBAR_LAYOUT_ID = "maputnik:sidebar-layout";
-const SIDEBAR_INNER_LAYOUT_ID = "maputnik:sidebar-inner-layout";
+const SIDEBAR_LAYOUT_ID = "map-stylizer:sidebar-layout-v2";
+const SIDEBAR_INNER_LAYOUT_ID = "map-stylizer:sidebar-inner-layout-v2";
 const SIDEBAR_PANEL_ID = "sidebar";
 const MAP_PANEL_ID = "map";
 const LIST_PANEL_ID = "list";
@@ -24,6 +22,7 @@ type AppLayoutProps = {
   map: React.ReactElement
   bottom?: React.ReactElement
   modals?: React.ReactNode
+  compactList?: boolean
 };
 
 export const AppLayout: React.FC<AppLayoutProps> = (props) => {
@@ -33,8 +32,9 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
     id: SIDEBAR_LAYOUT_ID,
     panelIds: [SIDEBAR_PANEL_ID, MAP_PANEL_ID],
   });
+  const innerLayoutId = props.compactList ? `${SIDEBAR_INNER_LAYOUT_ID}-compact` : SIDEBAR_INNER_LAYOUT_ID;
   const innerLayout = useDefaultLayout({
-    id: SIDEBAR_INNER_LAYOUT_ID,
+    id: innerLayoutId,
     panelIds: [LIST_PANEL_ID, DRAWER_PANEL_ID],
   });
 
@@ -75,8 +75,8 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
             }
             {!props.codeEditor && <Group
               className="maputnik-layout-sidebar-panels"
-              orientation="horizontal"
-              id={SIDEBAR_INNER_LAYOUT_ID}
+              orientation="vertical"
+              id={innerLayoutId}
               defaultLayout={innerLayout.defaultLayout}
               onLayoutChanged={innerLayout.onLayoutChanged}
             >
@@ -85,28 +85,29 @@ export const AppLayout: React.FC<AppLayoutProps> = (props) => {
                 data-wd-key="layer-list-panel"
                 className="maputnik-layout-list"
                 style={PANEL_STYLE}
-                defaultSize={`${DEFAULT_LIST_WIDTH}px`}
-                minSize="100px"
+                defaultSize={props.compactList ? "190px" : props.layerEditor ? "38%" : "100%"}
+                minSize={props.compactList ? "140px" : "100px"}
+                maxSize={props.compactList ? "240px" : undefined}
               >
                 {props.layerList}
               </Panel>
-              <Separator
-                className="maputnik-layout-resize-handle"
+              {props.layerEditor && <Separator
+                className="maputnik-layout-resize-handle maputnik-layout-resize-handle--horizontal"
                 data-wd-key="inner-resize-handle"
                 title={t("Drag to resize the layer list")}
                 aria-label={t("Drag to resize the layer list")}
-              />
-              <Panel
+              />}
+              {props.layerEditor && <Panel
                 id={DRAWER_PANEL_ID}
                 className="maputnik-layout-drawer"
                 style={PANEL_STYLE}
-                defaultSize={`${DEFAULT_DRAWER_WIDTH}px`}
+                defaultSize="62%"
                 minSize="150px"
               >
                 <ScrollContainer>
                   {props.layerEditor}
                 </ScrollContainer>
-              </Panel>
+              </Panel>}
             </Group>
             }
           </Panel>

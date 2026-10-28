@@ -1,57 +1,86 @@
 # Minimal
 
-A light indoor and outdoor map theme for Mappedin JS. Warm neutral geometry recedes, labels stay readable, and blue signals selection and navigation.
+Minimal is a light map theme imported and edited in the main Map Stylizer workspace. It uses the actual light tokens in the supplied reference CSS: neutral white surfaces, cool grays, clear blue interaction colors, pale blue water, and a restrained green fill.
 
-## Preview and files
+## Import the JSON in the editor
 
-Run `npm start`, then open `http://127.0.0.1:8888/minimal.html` for the Mappedin Office Demo. The existing editor also links to Minimal and offers it as the first style in **Open → Gallery Styles**.
+Run `npm start` and open **http://127.0.0.1:8888/**. Use **Import JSON** to open `src/templates/minimal/Minimal.json` in the main editor. No separate Minimal page is needed.
 
 | File in `src/templates/minimal/` | Purpose |
 | --- | --- |
-| `palette.json` | Source of truth for the 29 named colors. Edit this, then regenerate. |
-| `reference.tokens.json` | Nine cleaned light interface tokens extracted from the two user-supplied CSS files, with source hashes. |
-| `indoor.json` | Mappedin Studio indoor theme data. Apply with the SDK adapter. |
-| `indoor.studio.ts` | Self-contained version accepted by Mappedin Studio’s Indoor Style upload. |
-| `outdoor.json` | MapLibre v8 JSON targeting Mappedin’s authenticated OSM tiles and existing font endpoint. |
-| `outdoor-preview.json` | Same visual rules with OpenFreeMap tiles/fonts for the standalone Maputnik editor. This is a separate provider configuration, not a replacement for the Mappedin export. |
-| `thumbnail.svg` | Original schematic gallery thumbnail; not a screenshot of real geography. |
+| `Minimal.json` | Primary clean indoor theme. Plain JSON using the Mappedin Studio contract, with no TypeScript wrapper or application envelope. Import this in Map Stylizer. |
+| `Minimal.outdoor.json` | Clean MapLibre v8 style using public OpenFreeMap tiles/fonts. Import this for the outdoor layer editor. |
+| `palette.json` | Source of truth for 29 named color roles. Edit this, then regenerate. |
+| `reference.tokens.json` | Seventeen normalized reference tokens and exact source-variable mappings for every role. |
+| `indoor.json` | Same indoor theme as `Minimal.json`, retained as a compatibility path for SDK code. |
+| `outdoor.json` | Matching outdoor style targeting Mappedin’s authenticated tile/font service. Use this inside Mappedin JS. |
+| `outdoor-preview.json` | Public MapLibre style retained as a compatibility path for the gallery. |
+| `indoor.studio.ts` | Optional self-contained TypeScript wrapper for Mappedin Studio’s Indoor Style upload. |
+| `thumbnail.svg` | Original schematic gallery thumbnail using the template palette. |
+
+Regenerate the JSON and Studio wrapper with:
 
 ```sh
 npm run templates:build
 ```
 
-The generator validates both outdoor styles with the installed MapLibre style specification. Do not edit generated files directly. The template uses hex colors because the target map configuration accepts this format; the preview’s own CSS uses OKLCH.
+The generator validates the outdoor files with the installed MapLibre style specification. Do not edit generated files directly. Map configuration colors remain six-digit sRGB hex, the format the map renderers consume.
 
-## What was cleaned
+## Corrected color application
 
-The pasted material is web interface CSS. It does not provide the vector map’s land, water, roads, buildings, tile schema, or label collision rules. We retained a small color reference and independently designed the map palette and layer rules. No copied website layout CSS, proprietary fonts, symbols, or images are shipped.
+The previous pass used authored beige and olive geometry colors even though the extracted site tokens were white and cool gray. Those invented values have been removed. Every one of the 29 current color roles now uses a value present in the second supplied CSS file’s light `:root` block. `reference.tokens.json` records the exact variable and source for each role.
 
-The first paste starts with `root` instead of `:root`. Both pastes include large reset/layout/utility sections, repeated theme overrides, framework-prefixed variables, and values such as Lightning CSS light/dark flags that are compiler machinery rather than design choices. One misleading alpha token (`--system-white-a17: #ffffff17`) encodes about 9% opacity, despite its name. Those rules and ambiguous tokens were discarded rather than carried into the template.
+The source defines interface colors, not the reference company’s roads, water, parks, tile schema, or cartographic label rules. Assigning those colors to map geometry is our design decision. In particular, water uses the source’s pale blue `#add6ff` accent-disabled token; parks use the source’s `#f5fff6` success-fill token; major roads use `#fffef2` warning-fill. These are transparent semantic mappings, not recovered cartography.
 
-The nine reference tokens retain their source values (short white normalized from `#fff` to `#ffffff`). The primary accent consistently uses `#0071e3`, rather than mixing it with the first paste’s `#007aff`. The cream map shell `#f9f5ed` informs the canvas. The water, greenery, building, road, and indoor geometry colors in `palette.json` are authored choices, not extracted cartography. Dark mode remains a separate future template.
+| Role | Previous value | Corrected value | Light source variable |
+| --- | --- | --- | --- |
+| `canvas` | `#f9f5ed` | `#fbfbfd` | `--apl-color-fill-secondary` |
+| `surface` | `#ffffff` | `#ffffff` | `--apl-color-fill-primary` |
+| `surfaceMuted` | `#f5f5f7` | `#f5f5f7` | `--apl-color-fill-tertiary` |
+| `border` | `#e8e8ed` | `#e8e8ed` | `--apl-color-border-muted` |
+| `text` | `#1d1d1f` | `#1d1d1f` | `--apl-color-glyph-default` |
+| `textSecondary` | `#6e6e73` | `#6e6e73` | `--apl-color-glyph-muted` |
+| `accent` | `#0071e3` | `#0071e3` | `--apl-color-fill-action-brand-accent-default` |
+| `hover` | `#eaf3fc` | `#f5faff` | `--apl-color-glyph-action-brand-accent-disabled` |
+| `selected` | `#d6eaff` | `#d6eaff` | `--apl-color-fill-action-brand-accent-selection` |
+| `land` | `#f6f5f1` | `#fbfbfd` | `--apl-color-fill-secondary` |
+| `park` | `#e3ecdf` | `#f5fff6` | `--apl-color-fill-success` |
+| `water` | `#cfe4ee` | `#add6ff` | `--apl-color-fill-action-brand-accent-disabled` |
+| `waterLabel` | `#456b7b` | `#00488f` | `--apl-color-fill-action-brand-accent-pressed` |
+| `building` | `#e9e6e0` | `#e8e8ed` | `--apl-color-border-muted` |
+| `buildingOutline` | `#d8d4cd` | `#d2d2d7` | `--apl-color-fill-action-secondary-pressed` |
+| `road` | `#ffffff` | `#ffffff` | `--apl-color-fill-primary` |
+| `roadCasing` | `#deddd8` | `#d2d2d7` | `--apl-color-fill-action-secondary-pressed` |
+| `highway` | `#f3ead7` | `#fffef2` | `--apl-color-fill-warning` |
+| `rail` | `#c9c7c2` | `#86868b` | `--apl-color-border-default` |
+| `room` | `#f0eeea` | `#f5f5f7` | `--apl-color-fill-tertiary` |
+| `hallway` | `#ffffff` | `#ffffff` | `--apl-color-fill-primary` |
+| `inaccessible` | `#dedbd5` | `#e8e8ed` | `--apl-color-border-muted` |
+| `bathroom` | `#e7f1f7` | `#f5faff` | `--apl-color-glyph-action-brand-accent-disabled` |
+| `connection` | `#edf2f5` | `#d6eaff` | `--apl-color-fill-action-brand-accent-selection` |
+| `wall` | `#d5d1c9` | `#d2d2d7` | `--apl-color-fill-action-secondary-pressed` |
+| `wallTop` | `#a5a29b` | `#86868b` | `--apl-color-border-default` |
+| `object` | `#e4e0d8` | `#e8e8ed` | `--apl-color-border-muted` |
+| `success` | `#378447` | `#008009` | `--apl-color-glyph-success` |
+| `error` | `#c83338` | `#e30000` | `--apl-color-glyph-error` |
 
-## Mappedin integration
+No copied layout CSS, utility classes, proprietary fonts, symbols, or imagery are required by these JSON files. The template contains no emojis or icon characters. If venue names contain emojis, the editor’s label presentation must normalize those names separately; a color template does not change venue data.
 
-Mappedin Studio exports indoor theme data as TypeScript-wrapped JSON and outdoor styles as MapLibre JSON. These are different contracts; neither file is MVF venue geometry. The indoor JSON is not a `show3dMap` options object and does not automatically style a map when fetched.
+## What was removed from the reference
 
-The typed adapter at `src/minimal/apply-indoor.ts` applies geometry colors/heights through `updateState`. `src/minimal/preview.ts` demonstrates creation, labels, selection, floors, error recovery, and downloads using Mappedin JS 6.30.0. The preview uses only Mappedin’s published public demo credentials and map, with no private credentials or customer data.
+The first paste begins with `root` instead of `:root` and contains duplicated responsive/dark overrides, shell layout rules, and alpha values. Both pastes contain compiler flags or framework-prefixed utility rules rather than reusable map settings. One token, `--system-white-a17: #ffffff17`, encodes approximately 9% opacity despite its name. The cleanup excludes this ambiguous alpha token, Lightning CSS light/dark flags, resets, utility classes, and proprietary font/symbol references.
 
-```ts
-import { getMapData, show3dMap } from '@mappedin/mappedin-js';
-import { applyMinimalIndoor } from './src/minimal/apply-indoor';
+Short hex values are expanded and case is normalized. The light `:root` block is authoritative; later dark-mode overrides are not accidentally mixed into this light template. The cream shell background `#f9f5ed` is present in the first paste, but is no longer used as the map canvas. Dark mode can be developed as its own deliberate variant.
 
-const mapData = await getMapData(yourMapOptions);
-const mapView = await show3dMap(container, mapData, {
-  outdoorView: { style: absoluteHostedMinimalOutdoorUrl },
-});
-applyMinimalIndoor(mapView, mapData, space =>
-  spaceRoles[space.id] ?? (space.type === 'hallway' ? 'hallway' : 'standard')
-);
-```
+## Mappedin and MapLibre formats
 
-`spaceRoles` is a venue-specific map of IDs to `standard`, `inaccessible`, `bathroom`, `hallway`, or `connection`. The adapter does not guess room meaning from English names. It preserves exterior/void/open-to-below spaces. Selection, labels, path colors, and marker colors require application behavior; theme tokens alone do not create those objects or event handlers. The adapter intentionally changes space and object heights for the low-rise Minimal appearance.
+`Minimal.json` is indoor theme data. It is not a `show3dMap` options object, a MapLibre layer style, or MVF venue geometry. The main editor recognizes this indoor contract and applies its geometry colors through Mappedin JS. Importing `Minimal.outdoor.json` opens a MapLibre style with editable layers.
 
-Host the outdoor JSON on a URL accessible to your app. Mappedin’s tile and font endpoints require SDK authentication; they are not a standalone public tile service. Use the public preview variant for Maputnik. OpenFreeMap data attribution is included in that variant. Changing tile providers requires checking source-layer and field compatibility, not just swapping a URL.
+The editor previews the public Office Demo. Its known washroom and service-room labels are mapped explicitly for that demo only; this is not a classifier for arbitrary venues. After selecting a space, **Preview role** temporarily renders it as any supported room category so every category color can be inspected, even when the demo lacks that category. Role overrides are preview state only: they do not change venue geometry, are not saved into the theme JSON, and are not included in exported files.
+
+For a custom Mappedin application, apply the indoor theme through `updateState` using the included typed adapter or your own integration. Venue-specific room roles should be mapped by stable IDs or metadata; do not infer bathrooms, connections, or inaccessible rooms from English names. Exterior, void, and open-to-below spaces should retain their structural behavior. Markers, paths, labels, and selection require application behavior; having those color tokens in a JSON file does not create those objects or event handlers.
+
+`outdoor.json` uses Mappedin’s authenticated tile and font endpoints and is intended for its SDK. `Minimal.outdoor.json` uses public OpenFreeMap assets for independent MapLibre editing. The source-layer and field schema must be checked when switching providers; a URL substitution alone is not a general compatibility guarantee. Each public style includes the data attribution.
 
 ## References and provenance
 
@@ -61,10 +90,8 @@ Host the outdoor JSON on a URL accessible to your app. Mappedin’s tile and fon
 - [Mappedin demo keys, maps, and terms](https://developer.mappedin.com/docs/demo-keys-and-maps)
 - [OpenFreeMap setup and attribution](https://openfreemap.org/quick_start/)
 
-Formats and endpoint conventions were checked against the official guides and a download from the public Mappedin Studio demo on 2026-10-28. No baseline Studio implementation or pasted CSS stylesheet is redistributed. Mappedin SDK licensing is separate from the Maputnik fork’s MIT license; its package retains its own license and third-party notices.
+Formats and endpoint conventions were initially checked against the official guides and a public Mappedin Studio export on 2026-10-28. Source hashes of the user-supplied CSS files are recorded in `reference.tokens.json`. No reference-company implementation or pasted stylesheet is redistributed. The Mappedin SDK retains its separate license and third-party notices.
 
-## Verification
+## Template validation
 
-On 2026-10-28, the production build and ESLint passed, along with 52 Vitest tests. Twelve focused Chromium checks passed for the gallery, editor, imports, and downloads. All three downloads were also verified against the packaged production build, including its inlined indoor JSON asset. A deliberately wrong expected filename made the new download assertion fail, then the original assertion was restored.
-
-The Studio upload accepted `indoor.studio.ts` and displayed the Minimal colors. The Mappedin Office Demo rendered in both development and production builds; both floors and the keyboard room selector were checked visually. These checks used desktop browsers and public demo data, not a private customer venue or physical mobile device.
+Both outdoor provider variants pass the installed MapLibre style validator. `Minimal.json` matches the Studio indoor contract already accepted by the public Studio importer, and is identical to `indoor.json`. Generation is deterministic. Tests of editor import, geometry application, and UI behavior belong to the main editor’s verification, rather than to this palette provenance record.

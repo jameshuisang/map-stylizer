@@ -1,37 +1,55 @@
 import { describe, test, expect } from "./utils/fixtures";
 import { MaputnikDriver } from "./maputnik-driver";
-import indoor from "../src/templates/minimal/indoor.json" with { type: "json" };
-import outdoor from "../src/templates/minimal/outdoor.json" with { type: "json" };
-import preview from "../src/templates/minimal/outdoor-preview.json" with { type: "json" };
+import indoor from "../src/templates/minimal/Minimal.json" with { type: "json" };
+import outdoor from "../src/templates/minimal/Minimal.outdoor.json" with { type: "json" };
 
-const templateUrl = new URL("minimal.html", process.env.E2E_BASE_URL ?? "http://localhost:8888/").href;
-
-describe("Minimal template", () => {
+const base = process.env.E2E_BASE_URL ?? "http://localhost:8888/";
+describe("integrated Minimal editor", () => {
   const { given, get, when, then } = new MaputnikDriver();
 
-  test("opens from the editor gallery with all layers", async () => {
+  test("imports the clean indoor JSON through the editor file picker", async () => {
     await given.setupMockBackedResponses();
-    await when.setStyle("");
+    await when.setStyle("both");
     await when.click("nav:open");
-    await when.clickButtonByName("Minimal");
-    await then(get.styleFromLocalStorage()).shouldDeepNestedInclude({ name: preview.name, layers: preview.layers });
+    await when.openJsonFile(indoor, "modal:open.dropzone");
+    await then(get.elementByTestId("indoor:workspace")).shouldBeVisible();
+    await then(get.elementByTestId("indoor:hex-colors.rooms.standard")).shouldHaveValue(indoor.colors.rooms.standard);
   });
 
-  for (const [kind, expected] of [["indoor", indoor], ["outdoor", outdoor]] as const) {
-    test(`downloads valid ${kind} JSON`, async () => {
-      await when.visit(templateUrl);
-      const file = await when.downloadFile(`minimal:download-${kind}`);
-      expect(file.name).toBe(`minimal.${kind}.json`);
-      expect(JSON.parse(file.text)).toEqual(expected);
-    });
-  }
+  test("edits and exports indoor JSON without preview or venue data", async () => {
+    await when.visit(new URL("?template=minimal", base).href);
+    await when.setValue("indoor:hex-colors.rooms.standard", "#e8e8ed");
+    await when.tab();
+    const file = await when.downloadFile("nav:export");
+    expect(file.name).toBe("Minimal.json");
+    const expected = structuredClone(indoor);
+    expected.colors.rooms.standard = "#e8e8ed";
+    expect(JSON.parse(file.text)).toEqual(expected);
+    expect(file.text).not.toMatch(/mik_|mis_|mapId|demo|Extended_Pictographic/);
+  });
 
-  test("downloads self-contained Studio TypeScript", async () => {
-    await when.visit(templateUrl);
-    const file = await when.downloadFile("minimal:download-studio");
-    expect(file.name).toBe("minimal.indoor.ts");
-    const json = file.text.match(/const theme = ([\s\S]*?);\s*export default theme;/)?.[1];
-    expect(json).toBeDefined();
-    expect(JSON.parse(json!)).toEqual(indoor);
+  test("keeps geometry settings collapsed until requested", async () => {
+    await when.visit(new URL("?template=minimal", base).href);
+    await then(get.elementByTestId("indoor:geometry-height")).shouldNotExist();
+    await when.clickButtonByName("Geometry & height");
+    await then(get.elementByTestId("indoor:geometry-height")).shouldBeVisible();
+  });
+
+  test("imports a public outdoor style from the same indoor workspace", async () => {
+    await when.visit(new URL("?template=minimal", base).href);
+    await when.click("nav:open");
+    await when.openJsonFile(outdoor, "modal:open.dropzone");
+    await then(get.elementByTestId("indoor:workspace")).shouldNotExist();
+    await then(get.styleFromLocalStorage()).shouldDeepNestedInclude({ name: outdoor.name, layers: outdoor.layers });
+  });
+
+  test("rejects malformed indoor colors without replacing the document", async () => {
+    await when.visit(new URL("?template=minimal", base).href);
+    await when.click("nav:open");
+    const invalid = structuredClone(indoor);
+    invalid.colors.rooms.standard = "not-a-color";
+    await when.openJsonFile(invalid, "modal:open.dropzone");
+    await then(get.elementByTestId("modal:open")).shouldContainText("colors.rooms.standard");
+    await then(get.elementByTestId("indoor:workspace")).shouldExist();
   });
 });

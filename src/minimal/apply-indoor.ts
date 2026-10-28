@@ -1,21 +1,23 @@
 import { DOORS, WALLS, type MapData, type MapView, type Space } from "@mappedin/mappedin-js";
-import theme from "../templates/minimal/indoor.json";
+import defaultTheme from "../templates/minimal/Minimal.json";
+import type { IndoorTheme } from "../libs/indoor-theme";
 
-export type RoomRole = keyof typeof theme.roomHeights;
+export type RoomRole = keyof typeof defaultTheme.roomHeights;
 export type RoomRoleResolver = (space: Space) => RoomRole;
 
 /** Venue-specific roles belong in a resolver, never in English name matching. */
 export function applyMinimalIndoor(
   mapView: MapView,
   mapData: MapData,
-  resolveRole: RoomRoleResolver = space => space.type === "hallway" ? "hallway" : "standard"
+  resolveRole: RoomRoleResolver = space => space.type === "hallway" ? "hallway" : "standard",
+  theme: IndoorTheme = defaultTheme
 ) {
   const { rooms, map } = theme.colors;
-  for (const [target, height] of [[WALLS.Interior, theme.wallHeights.interior], [WALLS.Exterior, theme.wallHeights.exterior]] as const) {
-    mapView.updateState(target, { color: rooms.wall, topColor: map.geometry.wallTops, height });
+  for (const [target, height, color, opacity] of [[WALLS.Interior, theme.wallHeights.interior, rooms.interiorWall, theme.opacity.interiorWall], [WALLS.Exterior, theme.wallHeights.exterior, rooms.exteriorWall, theme.opacity.exteriorWall]] as const) {
+    mapView.updateState(target, { color, topColor: map.geometry.wallTops, height, opacity: opacity / 100 });
   }
   for (const target of [DOORS.Interior, DOORS.Exterior]) {
-    mapView.updateState(target, { visible: theme.showEntrances, color: rooms.doors, topColor: rooms.doors });
+    mapView.updateState(target, { visible: theme.showEntrances, color: rooms.doors, topColor: rooms.doors, opacity: theme.opacity.doors / 100 });
   }
   for (const floor of mapData.getByType("floor")) mapView.updateState(floor, { footprint: { color: rooms.hallway } });
   for (const space of mapData.getByType("space")) {
@@ -28,6 +30,6 @@ export function applyMinimalIndoor(
     });
   }
   for (const object of mapData.getByType("object")) {
-    mapView.updateState(object, { color: rooms.desk, topColor: rooms.desk, height: theme.objectHeight });
+    mapView.updateState(object, { color: rooms.desk, topColor: rooms.desk, height: theme.objectHeight, opacity: theme.opacity.desk / 100 });
   }
 }

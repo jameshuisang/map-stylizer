@@ -1,4 +1,7 @@
 import React from "react";
+import { IndoorEditor } from "./IndoorEditor";
+import defaultIndoor from "../templates/minimal/Minimal.json";
+import { parseIndoorTheme, type IndoorTheme } from "../libs/indoor-theme";
 import cloneDeep from "lodash.clonedeep";
 import clamp from "lodash.clamp";
 import buffer from "buffer";
@@ -99,7 +102,19 @@ function isTextEntryElement(element: Element | null): boolean {
     node.tagName === "SELECT";
 }
 
+function restoredIndoor(): IndoorTheme | null {
+  const url = new URL(window.location.href);
+  if (url.searchParams.has("style")) return null;
+  if (url.searchParams.get("template") === "minimal") return parseIndoorTheme(defaultIndoor);
+  try {
+    if (localStorage.getItem("map-stylizer:mode") === "indoor") return parseIndoorTheme(JSON.parse(localStorage.getItem("map-stylizer:indoor") || JSON.stringify(defaultIndoor)));
+    if (!localStorage.getItem("maputnik:latest_style") && !localStorage.getItem("map-stylizer:mode")) return parseIndoorTheme(defaultIndoor);
+  } catch { return parseIndoorTheme(defaultIndoor); }
+  return null;
+}
+
 type AppState = {
+  indoorTheme: IndoorTheme | null,
   errors: MappedError[],
   infos: string[],
   mapStyle: StyleSpecificationWithId,
@@ -140,6 +155,8 @@ type AppState = {
 };
 
 export class App extends React.Component<any, AppState> {
+  indoorRevisions: IndoorTheme[] = [];
+  indoorCursor = -1;
   revisionStore: RevisionStore;
   styleStore: IStyleStore | null = null;
   layerWatcher: LayerWatcher;
@@ -150,7 +167,15 @@ export class App extends React.Component<any, AppState> {
     this.revisionStore = new RevisionStore();
     this.configureKeyboardShortcuts();
 
+    const initialIndoor = restoredIndoor();
+    if (initialIndoor) {
+      const url = new URL(window.location.href);
+      for (const key of ["template", "layer", "modal", "view"]) url.searchParams.delete(key);
+      url.hash = ""; history.replaceState({}, "", url);
+    }
+    if (initialIndoor) { this.indoorRevisions = [initialIndoor]; this.indoorCursor = 0; }
     this.state = {
+      indoorTheme: initialIndoor,
       errors: [],
       infos: [],
       mapStyle: emptyStyle,
@@ -243,7 +268,7 @@ export class App extends React.Component<any, AppState> {
       {
         key: "m",
         handler: () => {
-          (document.querySelector(".maplibregl-canvas") as HTMLCanvasElement).focus();
+          (document.querySelector(".maplibregl-canvas") as HTMLCanvasElement | null)?.focus();
         }
       },
       {
@@ -255,9 +280,12 @@ export class App extends React.Component<any, AppState> {
     ];
 
     document.body.addEventListener("keyup", (e) => {
+      if (e.defaultPrevented || this.state.indoorTheme) return;
       if(e.key === "Escape") {
-        (e.target as HTMLElement).blur();
-        document.body.focus();
+        if (isTextEntryElement(e.target as Element)) {
+          (e.target as HTMLElement).blur();
+          document.body.focus();
+        }
       }
       else if(this.state.isOpen.shortcuts || !isTextEntryElement(document.activeElement)) {
         const shortcut = shortcuts.find((shortcut) => {
@@ -273,6 +301,7 @@ export class App extends React.Component<any, AppState> {
   };
 
   handleKeyPress = (e: KeyboardEvent) => {
+    if (e.defaultPrevented || isTextEntryElement(document.activeElement)) return;
     if(navigator.platform.toUpperCase().indexOf("MAC") >= 0) {
       if(e.metaKey && e.shiftKey && e.keyCode === 90) {
         e.preventDefault();
@@ -514,6 +543,10 @@ export class App extends React.Component<any, AppState> {
   };
 
   onUndo = () => {
+    if (this.state.indoorTheme) {
+      if (this.indoorCursor > 0) this.applyIndoor(this.indoorRevisions[--this.indoorCursor], false);
+      return;
+    }
     const activeStyle = this.revisionStore.undo();
 
     const messages = undoMessages(this.state.mapStyle, activeStyle);
@@ -524,6 +557,10 @@ export class App extends React.Component<any, AppState> {
   };
 
   onRedo = () => {
+    if (this.state.indoorTheme) {
+      if (this.indoorCursor < this.indoorRevisions.length - 1) this.applyIndoor(this.indoorRevisions[++this.indoorCursor], false);
+      return;
+    }
     const activeStyle = this.revisionStore.redo();
     const messages = redoMessages(this.state.mapStyle, activeStyle);
     this.onStyleChanged(activeStyle, {addRevision: false});
@@ -628,7 +665,27 @@ export class App extends React.Component<any, AppState> {
     }
   };
 
+  applyIndoor = (value: IndoorTheme, addRevision = true) => {
+    const theme = parseIndoorTheme(value);
+    if (addRevision) {
+      this.indoorRevisions = this.indoorRevisions.slice(0, this.indoorCursor + 1);
+      this.indoorRevisions.push(theme);
+      this.indoorCursor++;
+    }
+    try { localStorage.setItem("map-stylizer:indoor", JSON.stringify(theme)); localStorage.setItem("map-stylizer:mode", "indoor"); } catch { /* Editing remains available when browser storage is full. */ }
+    this.setState({ indoorTheme: theme, isOpen: { ...this.state.isOpen, open: false } }, () => {
+      const url = new URL(window.location.href);
+      for (const key of ["template", "layer", "modal", "view"]) url.searchParams.delete(key);
+      url.hash = ""; history.replaceState({}, "", url);
+    });
+  };
+
   openStyle = (styleObj: StyleSpecificationWithId, fileHandle: FileSystemFileHandle | null) => {
+    this.setState({ indoorTheme: null });
+    try { localStorage.setItem("map-stylizer:mode", "outdoor"); } catch { /* Keep editing without persistence. */ }
+    const url = new URL(window.location.href);
+    url.searchParams.delete("template");
+    history.replaceState({}, "", url);
     this.setState({fileHandle: fileHandle});
     styleObj = this.setDefaultValues(styleObj);
     this.onStyleChanged(styleObj);
@@ -762,6 +819,7 @@ export class App extends React.Component<any, AppState> {
   }
 
   setStateInUrl = () => {
+    if (this.state.indoorTheme) return;
     const {mapState, mapStyle, isOpen} = this.state;
     const {selectedLayerIndex} = this.state;
     const url = new URL(location.href);
@@ -885,10 +943,16 @@ export class App extends React.Component<any, AppState> {
   };
 
   render() {
+    if (this.state.indoorTheme) return <IndoorEditor theme={this.state.indoorTheme} onChange={this.applyIndoor} onImportOutdoor={(style, handle) => this.openStyle(style as StyleSpecificationWithId, handle as FileSystemFileHandle | null)} onUndo={this.onUndo} onRedo={this.onRedo} canUndo={this.indoorCursor > 0} canRedo={this.indoorCursor < this.indoorRevisions.length - 1} />;
     const layers = this.state.mapStyle.layers || [];
     const selectedLayer = layers.length > 0 ? layers[this.state.selectedLayerIndex] : undefined;
 
     const toolbar = <AppToolbar
+      documentName={this.state.mapStyle.name || "Untitled style"}
+      documentKind="outdoor"
+      onUndo={this.onUndo} onRedo={this.onRedo}
+      canUndo={this.revisionStore.currentIdx > 0}
+      canRedo={this.revisionStore.currentIdx < this.revisionStore.revisions.length - 1}
       renderer={this._getRenderer()}
       mapState={this.state.mapState}
       mapStyle={this.state.mapStyle}
@@ -979,6 +1043,7 @@ export class App extends React.Component<any, AppState> {
       />
       <ModalOpen
         isOpen={this.state.isOpen.open}
+        onIndoorOpen={this.applyIndoor}
         onStyleOpen={this.openStyle}
         onOpenToggle={() => this.toggleModal("open")}
         fileHandle={this.state.fileHandle}

@@ -11,11 +11,11 @@ npm ci
 npm start
 ```
 
-Open **http://localhost:8888/**. The editor saves your work in this browser's local storage. Use **Save** to download a style file you can keep or use elsewhere.
+Open **http://localhost:8888/**. The editor saves your work in this browser's local storage. Use **Export JSON** to download a style file you can keep or use elsewhere.
 
 ## Minimal template
 
-Open **http://localhost:8888/minimal.html** for the live Mappedin preview and indoor/outdoor JSON downloads. Minimal is also the first style in the editor gallery. Edit `src/templates/minimal/palette.json` and run `npm run templates:build` to regenerate the exports.
+Use **Import → Minimal indoor** in the main editor, or import `src/templates/minimal/Minimal.json`. The same workspace previews and edits the theme, then exports clean JSON. `Minimal.outdoor.json` is the matching public MapLibre style. There is no separate template preview app. Edit `src/templates/minimal/palette.json` and run `npm run templates:build` to regenerate the exports.
 
 See the [template and integration guide](docs/templates/minimal.md).
 

@@ -33,6 +33,7 @@ describe("modals", () => {
 
     describe("when click open url", () => {
       beforeEach(async () => {
+        await when.revealImportUrl();
         const styleFileUrl = get.exampleFileUrl();
 
         await when.setValue("modal:open.url.input", styleFileUrl);
@@ -112,12 +113,12 @@ describe("modals", () => {
   describe("sources", () => {
     beforeEach(async () => {
       await when.setStyle("layer");
-      await when.click("nav:sources");
+      await when.openTool("sources");
     });
 
     test("active sources are listed and can be deleted", async () => {
       await when.setStyle("both");
-      await when.click("nav:sources");
+      await when.openTool("sources");
       const before = Object.keys(get.fixture("geojson-raster-style.json").sources).length;
       await when.modal.deleteFirstActiveSource();
       await then(
@@ -290,13 +291,13 @@ describe("modals", () => {
     test("toggle", async () => {
       // There is no assertion in this test
       await when.setStyle("geojson");
-      await when.select("maputnik-select", "inspect");
+      await when.setViewMode("inspect");
     });
   });
 
   describe("style settings", () => {
     beforeEach(async () => {
-      await when.click("nav:settings");
+      await when.openTool("settings");
     });
 
     describe("when click name filed spec information", () => {
@@ -509,7 +510,7 @@ describe("modals", () => {
 
       await when.clickByAttribute("aria-label", "MapTiler Basic");
       await when.wait(1000);
-      await when.click("nav:settings");
+      await when.openTool("settings");
 
       await when.select("modal:settings.maputnik:renderer", "mlgljs");
       await then(get.inputValue("modal:settings.maputnik:renderer")).shouldEqual("mlgljs");
@@ -549,7 +550,7 @@ describe("modals", () => {
 
   describe("global state", () => {
     beforeEach(async () => {
-      await when.click("nav:global-state");
+      await when.openTool("global-state");
     });
 
     test("add variable", async () => {
@@ -627,6 +628,7 @@ describe("modals", () => {
 
       // Open the style via URL input
       await when.click("nav:open");
+      await when.revealImportUrl();
       await when.setValue("modal:open.url.input", get.exampleFileUrl());
       await when.click("modal:open.url.button");
 

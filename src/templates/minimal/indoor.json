@@ -31,14 +31,14 @@
       "primary": "#0071e3",
       "secondary": "#6e6e73",
       "neutral": "#e8e8ed",
-      "neutral2": "#e9e6e0",
-      "success": "#378447",
-      "error": "#c83338"
+      "neutral2": "#e8e8ed",
+      "success": "#008009",
+      "error": "#e30000"
     },
     "background": {
       "primary": "#ffffff",
       "secondary": "#f5f5f7",
-      "tertiary": "#eaf3fc",
+      "tertiary": "#f5faff",
       "inverted": "#1d1d1f"
     },
     "text": {
@@ -49,7 +49,7 @@
       "highlight": "#0071e3",
       "placeholder": "#6e6e73",
       "inverted": "#ffffff",
-      "error": "#c83338",
+      "error": "#e30000",
       "link": "#0071e3"
     },
     "map": {
@@ -78,25 +78,25 @@
         "youAreHere": "#0071e3"
       },
       "geometry": {
-        "wallTops": "#a5a29b",
+        "wallTops": "#86868b",
         "departure": "#0071e3",
         "highlight": "#d6eaff",
-        "hover": "#eaf3fc"
+        "hover": "#f5faff"
       },
       "path": "#0071e3",
-      "background": "#f9f5ed"
+      "background": "#fbfbfd"
     },
     "rooms": {
-      "standard": "#f0eeea",
-      "inaccessible": "#dedbd5",
-      "bathroom": "#e7f1f7",
+      "standard": "#f5f5f7",
+      "inaccessible": "#e8e8ed",
+      "bathroom": "#f5faff",
       "hallway": "#ffffff",
-      "connection": "#edf2f5",
-      "desk": "#e4e0d8",
-      "wall": "#d5d1c9",
-      "interiorWall": "#d5d1c9",
-      "exteriorWall": "#d5d1c9",
-      "doors": "#d5d1c9"
+      "connection": "#d6eaff",
+      "desk": "#e8e8ed",
+      "wall": "#d2d2d7",
+      "interiorWall": "#d2d2d7",
+      "exteriorWall": "#d2d2d7",
+      "doors": "#d2d2d7"
     }
   }
 }

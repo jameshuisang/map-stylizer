@@ -1,5 +1,5 @@
 import { v1 as uuid } from "uuid";
-import { beforeEach, describe, test } from "./utils/fixtures";
+import { beforeEach, describe, test, expect } from "./utils/fixtures";
 import { MaputnikDriver } from "./maputnik-driver";
 
 describe("layer editor", () => {
@@ -11,7 +11,7 @@ describe("layer editor", () => {
     await when.modal.open();
   });
 
-  async function createBackground() {
+  async function createBackground(revealDetails = true) {
     const id = uuid();
 
     await when.selectWithin("add-layer.layer-type", "background");
@@ -22,13 +22,16 @@ describe("layer editor", () => {
     await then(get.styleFromLocalStorage()).shouldDeepNestedInclude({
       layers: [{ id: "background:" + id, type: "background" }],
     });
+    if (revealDetails) await when.revealLayerEditorGroup("Layer");
     return id;
   }
 
   test("expand/collapse", async () => {
-    const bgId = await createBackground();
+    const bgId = await createBackground(false);
     await when.click("layer-list-item:background:" + bgId);
-
+    await then(get.elementByTestId("layer-editor.layer-id.input")).shouldNotBeVisible();
+    await expect(get.elementByTestId("layer-editor-group:Layout properties").getByRole("button")).toHaveAttribute("aria-expanded", "false");
+    await when.revealLayerEditorGroup("Layer");
     await then(get.elementByTestId("layer-editor.layer-id.input")).shouldBeVisible();
 
     await when.toggleGroupInLayerEditor("Layer");
@@ -58,9 +61,10 @@ describe("layer editor", () => {
         type: "circle",
         layer: "invalid",
       });
+      await when.revealLayerEditorGroup("Layer");
       await then(
         get.element(".maputnik-input-block--error .maputnik-input-block-label")
-      ).shouldHaveCss("color", "rgb(207, 74, 74)");
+      ).shouldHaveCss("color", "rgb(200, 51, 56)");
     });
   });
 
@@ -553,6 +557,7 @@ describe("layer editor", () => {
         layers: [{ id, type: "circle", source: "example" }],
       });
 
+      await when.revealLayerEditorGroup("JSON Editor");
       await when.clickByText('"source"');
       await when.typeKeys('"');
 
@@ -563,6 +568,8 @@ describe("layer editor", () => {
       const bgId = await createBackground();
       await when.click("layer-list-item:background:" + bgId);
 
+      await then(get.element(".cm-content")).shouldNotBeVisible();
+      await when.revealLayerEditorGroup("JSON Editor");
       await then(get.element(".cm-content")).shouldBeVisible();
 
       await when.toggleGroupInLayerEditor("JSON Editor");

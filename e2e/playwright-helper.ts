@@ -385,6 +385,13 @@ export class PlaywrightHelper {
      * "filechooser" event and so has to be stubbed. For the <input type="file">
      * fallback that browsers without the API use, see chooseFileFromPicker.
      */
+    openJsonFile: async (value: object, buttonTestId: string) => {
+      await this.page.evaluate((content) => {
+        (window as any).showOpenFilePicker = async () => [{ getFile: async () => ({ text: async () => content }) }];
+      }, JSON.stringify(value));
+      await this.testId(buttonTestId).click();
+    },
+
     openFileByFixture: async (fixture: string, buttonTestId: string) => {
       const content = JSON.stringify(this.readFixture(fixture));
       await this.page.evaluate((fileContent) => {
@@ -468,6 +475,9 @@ export class PlaywrightHelper {
     elementByTestId: (testId: string) => this.testId(testId),
 
     inputValue: (testId: string) => new Query<string>(() => this.testId(testId).first().inputValue()),
+
+    elementHeight: (testId: string) =>
+      new Query<number>(async () => (await this.testId(testId).boundingBox())!.height),
 
     elementWidth: (testId: string) =>
       new Query<number>(async () => {

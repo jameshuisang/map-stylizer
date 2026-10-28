@@ -93,6 +93,10 @@ function getLayoutForType(type: LayerSpecification["type"], t: TFunction): Maput
   return groups;
 }
 
+function startsExpanded(group: { id: string }) {
+  return ["Paint_properties", "Text_layout_properties", "Text_paint_properties"].includes(group.id);
+}
+
 function layoutGroups(layerType: LayerSpecification["type"], t: TFunction): { id: string, title: string, type: string, fields?: string[] }[] {
   const layerGroup = {
     id: "layer",
@@ -109,9 +113,7 @@ function layoutGroups(layerType: LayerSpecification["type"], t: TFunction): { id
     title: t("JSON Editor"),
     type: "jsoneditor"
   };
-  return [layerGroup, filterGroup]
-    .concat(getLayoutForType(layerType, t))
-    .concat([editorGroup]);
+  return [...getLayoutForType(layerType, t), layerGroup, filterGroup, editorGroup];
 }
 
 type LayerEditorInternalProps = {
@@ -148,7 +150,7 @@ class LayerEditorInternal extends React.Component<LayerEditorInternalProps, Laye
 
     const editorGroups: { [keys: string]: boolean } = {};
     for (const group of layoutGroups(this.props.layer.type, props.t)) {
-      editorGroups[group.title] = true;
+      editorGroups[group.title] = startsExpanded(group);
     }
 
     this.state = { editorGroups };
@@ -159,7 +161,7 @@ class LayerEditorInternal extends React.Component<LayerEditorInternalProps, Laye
 
     for (const group of getLayoutForType(props.layer.type, props.t)) {
       if (!(group.title in additionalGroups)) {
-        additionalGroups[group.title] = true;
+        additionalGroups[group.title] = startsExpanded(group);
       }
     }
 
@@ -315,7 +317,7 @@ class LayerEditorInternal extends React.Component<LayerEditorInternalProps, Laye
         data-wd-key={group.title}
         id={groupId}
         key={groupId}
-        title={group.title}
+        title={group.type === "layer" ? t("Layer details") : group.type === "filter" ? t("Data filters") : group.type === "jsoneditor" ? t("Layer JSON") : group.title === t("Paint properties") ? t("Appearance") : group.title}
         isActive={this.state.editorGroups[group.title]}
         onActiveToggle={this.onGroupToggle.bind(this, group.title)}
       >
@@ -376,7 +378,8 @@ class LayerEditorInternal extends React.Component<LayerEditorInternalProps, Laye
         <header data-wd-key="layer-editor.header">
           <div className="layer-header">
             <h2 className="layer-header__title">
-              {t("Layer")}: {formatLayerId(this.props.layer.id)}
+              <span className="workspace-inspector-eyebrow">{t("Selected layer")}</span>
+              {formatLayerId(this.props.layer.id)}
             </h2>
             <div className="layer-header__info">
               <Wrapper
@@ -411,7 +414,7 @@ class LayerEditorInternal extends React.Component<LayerEditorInternalProps, Laye
         <Accordion
           allowMultipleExpanded={true}
           allowZeroExpanded={true}
-          preExpanded={groupIds}
+          preExpanded={groups.length ? layoutGroups(layerType, t).filter(startsExpanded).map(group => group.id) : []}
         >
           {groups}
         </Accordion>

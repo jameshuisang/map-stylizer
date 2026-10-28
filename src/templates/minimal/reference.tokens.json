@@ -1,6 +1,6 @@
 {
   "name": "Minimal reference tokens",
-  "purpose": "Small semantic reference extracted from user-supplied website CSS. These are interface colors, not recovered map layer colors.",
+  "purpose": "Normalized light color tokens from the user-supplied site CSS. Cartographic roles below are explicit design mappings, not recovered map-layer colors.",
   "sources": [
     {
       "label": "Pasted CSS 1",
@@ -20,14 +20,170 @@
     "text": "#1d1d1f",
     "textSecondary": "#6e6e73",
     "border": "#e8e8ed",
+    "borderStrong": "#86868b",
+    "controlPressed": "#d2d2d7",
     "accent": "#0071e3",
+    "accentPressed": "#00488f",
+    "accentDisabled": "#add6ff",
     "selection": "#d6eaff",
-    "mapShellBackground": "#f9f5ed"
+    "accentFillSubtle": "#f5faff",
+    "success": "#008009",
+    "successFill": "#f5fff6",
+    "error": "#e30000",
+    "warningFill": "#fffef2"
   },
   "notes": [
-    "Short hex values normalized to six digits.",
-    "UI color values retained as reference; map land, water, parks, geometry, and road styling are independently authored.",
-    "Dark-mode rules are deliberately excluded from this first light Minimal template.",
-    "Compiler flags, framework prefixes, layout rules, responsive utility classes, resets, and proprietary font/symbol references are excluded."
-  ]
+    "All 29 Minimal role values are present in the supplied light CSS. Short hex is expanded and case is normalized.",
+    "Surface, geometry, water, greenery, and road assignments are authored semantic mappings of those source tokens. The pastes contain no vector cartographic style.",
+    "The first pass\u2019s invented beige, olive, and blue-gray colors were removed. The map-shell cream #f9f5ed is recorded in the original paste but is no longer the template canvas.",
+    "The light :root block is authoritative. Dark-mode overrides, alpha tokens with misleading names, compiler flags, layout rules, utility classes, and proprietary font/symbol references are excluded.",
+    "Minimal is light-only. Colors are serialized as six-digit sRGB hex for the target map configuration."
+  ],
+  "mapRoles": {
+    "canvas": {
+      "value": "#fbfbfd",
+      "sourceVariable": "--apl-color-fill-secondary",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "surface": {
+      "value": "#ffffff",
+      "sourceVariable": "--apl-color-fill-primary",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "surfaceMuted": {
+      "value": "#f5f5f7",
+      "sourceVariable": "--apl-color-fill-tertiary",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "border": {
+      "value": "#e8e8ed",
+      "sourceVariable": "--apl-color-border-muted",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "text": {
+      "value": "#1d1d1f",
+      "sourceVariable": "--apl-color-glyph-default",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "textSecondary": {
+      "value": "#6e6e73",
+      "sourceVariable": "--apl-color-glyph-muted",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "accent": {
+      "value": "#0071e3",
+      "sourceVariable": "--apl-color-fill-action-brand-accent-default",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "hover": {
+      "value": "#f5faff",
+      "sourceVariable": "--apl-color-glyph-action-brand-accent-disabled",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "selected": {
+      "value": "#d6eaff",
+      "sourceVariable": "--apl-color-fill-action-brand-accent-selection",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "land": {
+      "value": "#fbfbfd",
+      "sourceVariable": "--apl-color-fill-secondary",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "park": {
+      "value": "#f5fff6",
+      "sourceVariable": "--apl-color-fill-success",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "water": {
+      "value": "#add6ff",
+      "sourceVariable": "--apl-color-fill-action-brand-accent-disabled",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "waterLabel": {
+      "value": "#00488f",
+      "sourceVariable": "--apl-color-fill-action-brand-accent-pressed",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "building": {
+      "value": "#e8e8ed",
+      "sourceVariable": "--apl-color-border-muted",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "buildingOutline": {
+      "value": "#d2d2d7",
+      "sourceVariable": "--apl-color-fill-action-secondary-pressed",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "road": {
+      "value": "#ffffff",
+      "sourceVariable": "--apl-color-fill-primary",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "roadCasing": {
+      "value": "#d2d2d7",
+      "sourceVariable": "--apl-color-fill-action-secondary-pressed",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "highway": {
+      "value": "#fffef2",
+      "sourceVariable": "--apl-color-fill-warning",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "rail": {
+      "value": "#86868b",
+      "sourceVariable": "--apl-color-border-default",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "room": {
+      "value": "#f5f5f7",
+      "sourceVariable": "--apl-color-fill-tertiary",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "hallway": {
+      "value": "#ffffff",
+      "sourceVariable": "--apl-color-fill-primary",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "inaccessible": {
+      "value": "#e8e8ed",
+      "sourceVariable": "--apl-color-border-muted",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "bathroom": {
+      "value": "#f5faff",
+      "sourceVariable": "--apl-color-glyph-action-brand-accent-disabled",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "connection": {
+      "value": "#d6eaff",
+      "sourceVariable": "--apl-color-fill-action-brand-accent-selection",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "wall": {
+      "value": "#d2d2d7",
+      "sourceVariable": "--apl-color-fill-action-secondary-pressed",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "wallTop": {
+      "value": "#86868b",
+      "sourceVariable": "--apl-color-border-default",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "object": {
+      "value": "#e8e8ed",
+      "sourceVariable": "--apl-color-border-muted",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "success": {
+      "value": "#008009",
+      "sourceVariable": "--apl-color-glyph-success",
+      "source": "Pasted CSS 2, light :root"
+    },
+    "error": {
+      "value": "#e30000",
+      "sourceVariable": "--apl-color-glyph-error",
+      "source": "Pasted CSS 2, light :root"
+    }
+  }
 }

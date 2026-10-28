@@ -17,11 +17,11 @@ describe("sidebar resize", () => {
     await then(get.elementWidth("sidebar-panel")).shouldBeGreaterThan(initialWidth + 50);
   });
 
-  test("dragging the inner handle widens the layer list", async () => {
-    const initialWidth = await get.elementWidth("layer-list-panel").get();
+  test("dragging the inner handle increases the layer list height", async () => {
+    const initialHeight = await get.elementHeight("layer-list-panel").get();
 
-    await when.dragBy("inner-resize-handle", 50);
+    await when.dragBy("inner-resize-handle", 0, 50);
 
-    await then(get.elementWidth("layer-list-panel")).shouldBeGreaterThan(initialWidth + 20);
+    await then(get.elementHeight("layer-list-panel")).shouldBeGreaterThan(initialHeight + 20);
   });
 });

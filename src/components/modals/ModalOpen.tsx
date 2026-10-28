@@ -9,6 +9,7 @@ import { InputButton } from "../InputButton";
 import { InputUrl } from "../InputUrl";
 
 import { ensureStyleValidity } from "../../libs/style";
+import { isIndoorTheme, parseIndoorTheme, type IndoorTheme } from "../../libs/indoor-theme";
 import publicStyles from "../../config/styles.json";
 
 type PublicStyleProps = {
@@ -46,6 +47,7 @@ type ModalOpenInternalProps = {
   isOpen: boolean
   onOpenToggle(): void
   onStyleOpen(...args: unknown[]): unknown
+  onIndoorOpen?(theme: IndoorTheme): void
   fileHandle: FileSystemFileHandle | null
 } & WithTranslation;
 
@@ -67,6 +69,21 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
       isDragOver: false,
     };
   }
+
+  acceptDocument = (body: unknown, fileHandle?: FileSystemFileHandle) => {
+    if (isIndoorTheme(body) || (body && typeof body === "object" && "colors" in body)) {
+      const theme = parseIndoorTheme(body);
+      if (!this.props.onIndoorOpen) throw new Error("Indoor themes cannot be opened in this context.");
+      this.props.onIndoorOpen(theme);
+    } else {
+      const value = body as { version?: number; layers?: unknown[]; sources?: object };
+      if (!value || value.version !== 8 || !Array.isArray(value.layers) || !value.sources) {
+        throw new Error("Choose a MapLibre v8 style or a Mappedin indoor theme JSON with colors.rooms and colors.map.");
+      }
+      this.props.onStyleOpen(ensureStyleValidity(body as Parameters<typeof ensureStyleValidity>[0]), fileHandle);
+    }
+    this.onOpenToggle();
+  };
 
   clearError() {
     this.setState({
@@ -109,14 +126,11 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
           activeRequestUrl: null
         });
 
-        const mapStyle = ensureStyleValidity(body);
-        console.log("Loaded style ", mapStyle.id);
-        this.props.onStyleOpen(mapStyle);
-        this.onOpenToggle();
+        this.acceptDocument(body);
       })
       .catch((err) => {
         this.setState({
-          error: `Failed to load: '${styleUrl}'`,
+          error: (err as Error).message || `Failed to load: '${styleUrl}'`,
           activeRequest: null,
           activeRequestUrl: null
         });
@@ -165,10 +179,8 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
       });
       return;
     }
-    mapStyle = ensureStyleValidity(mapStyle);
-
-    this.props.onStyleOpen(mapStyle, fileHandle);
-    this.onOpenToggle();
+    try { this.acceptDocument(mapStyle, fileHandle); }
+    catch (err) { this.setState({ error: (err as Error).message }); }
     return file;
   };
 
@@ -193,9 +205,8 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
         });
         return;
       }
-      mapStyle = ensureStyleValidity(mapStyle);
-      this.props.onStyleOpen(mapStyle);
-      this.onOpenToggle();
+      try { this.acceptDocument(mapStyle); }
+      catch (err) { this.setState({ error: (err as Error).message }); }
     };
     reader.onerror = e => console.log(e.target);
   };
@@ -251,8 +262,8 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
     const t = this.props.t;
     const styleOptions = [{
       id: "minimal",
-      title: "Minimal",
-      url: new URL("../../templates/minimal/outdoor-preview.json", import.meta.url).href,
+      title: "Minimal outdoor",
+      url: new URL("../../templates/minimal/Minimal.outdoor.json", import.meta.url).href,
       thumbnail: new URL("../../templates/minimal/thumbnail.svg", import.meta.url).href
     }, ...publicStyles].map(style => {
       return <PublicStyle
@@ -280,12 +291,12 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
           data-wd-key="modal:open"
           isOpen={this.props.isOpen}
           onOpenToggle={() => this.onOpenToggle()}
-          title={t("Open Style")}
+          title={t("Import style")}
         >
           {errorElement}
           <section className="maputnik-modal-section">
-            <h1>{t("Open local Style")}</h1>
-            <p>{t("Open a local JSON style from your computer.")}</p>
+            <h1>{t("Import JSON")}</h1>
+            <p>{t("Import a Mappedin indoor theme or MapLibre outdoor style.")}</p>
             <div
               data-wd-key="modal:open.dropzone"
               className={`maputnik-upload-dropzone${this.state.isDragOver ? " maputnik-upload-dropzone--active" : ""}`}
@@ -294,11 +305,11 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
               onDragOver={this.onFileDragOver}
               onDragLeave={this.onFileDragLeave}
               onDrop={this.onFileDrop}
-              onClick={() => void this.onBrowseClick()}
+              onClick={() => void this.onBrowseClick().catch(error => { if (error.name !== "AbortError") this.setState({error:error.message}); })}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  void this.onBrowseClick();
+                  void this.onBrowseClick().catch(error => { if (error.name !== "AbortError") this.setState({error:error.message}); });
                 }
               }}
             >
@@ -312,13 +323,15 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
                 ref={this.fileInputRef}
                 data-wd-key="modal:open.file.input"
                 type="file"
+                accept=".json,application/json"
                 style={{ display: "none" }}
                 onChange={(e) => this.onFileChanged(e.target.files)}
               />
             </div>
           </section>
 
-          <section className="maputnik-modal-section">
+          <details className="maputnik-modal-section">
+            <summary>Import from a URL</summary>
             <form onSubmit={this.onSubmitUrl}>
               <h1>{t("Load from URL")}</h1>
               <p>
@@ -345,16 +358,18 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
                 >Load from URL</InputButton>
               </div>
             </form>
-          </section>
+          </details>
 
           <section className="maputnik-modal-section maputnik-modal-section--shrink">
-            <h1>{t("Gallery Styles")}</h1>
+            <h1>{t("Start from a template")}</h1>
+            {this.props.onIndoorOpen && <InputButton data-wd-key="template:minimal" onClick={() => this.onStyleSelect(new URL("../../templates/minimal/Minimal.json", import.meta.url).href)}>Minimal indoor</InputButton>}
             <p>
-              {t("Open one of the publicly available styles to start from.")}
+              Choose the indoor theme or the matching outdoor map style.
             </p>
             <div className="maputnik-style-gallery-container">
-              {styleOptions}
+              {styleOptions[0]}
             </div>
+            <details className="maputnik-community-styles"><summary>More community styles</summary><div className="maputnik-style-gallery-container">{styleOptions.slice(1)}</div></details>
           </section>
         </Modal>
 

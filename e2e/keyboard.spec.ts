@@ -1,4 +1,4 @@
-import { beforeEach, describe, test } from "./utils/fixtures";
+import { beforeEach, describe, test, expect } from "./utils/fixtures";
 import { MaputnikDriver } from "./maputnik-driver";
 
 describe("keyboard", () => {
@@ -15,12 +15,14 @@ describe("keyboard", () => {
       await when.setStyle("");
     });
 
-    test("ESC should unfocus", async () => {
-      const targetSelector = "maputnik-select";
+    test("ESC closes the menu and restores trigger focus", async () => {
+      const targetSelector = "view-option:map";
+      await when.openMapMenu();
       await when.focus(targetSelector);
       await then(get.elementByTestId(targetSelector)).shouldBeFocused();
       await when.typeKeys("{esc}");
-      await then(get.elementByTestId(targetSelector)).shouldNotBeFocused();
+      await then(get.elementByTestId(targetSelector)).shouldNotExist();
+      await then(get.elementByTestId("nav:map-menu")).shouldBeFocused();
     });
 
     test("'?' should show shortcuts modal", async () => {
@@ -50,7 +52,8 @@ describe("keyboard", () => {
 
     test("'i' should change map to inspect mode", async () => {
       await when.typeKeys("i");
-      await then(get.inputValue("maputnik-select")).shouldEqual("inspect");
+      await when.openMapMenu();
+      await expect(get.elementByTestId("view-option:inspect")).toHaveAttribute("aria-checked", "true");
     });
 
     test("'m' should focus map", async () => {

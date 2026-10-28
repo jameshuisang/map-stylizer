@@ -1,0 +1,80 @@
+{
+  "repository": "https://github.com/pixel-point/toolcraft",
+  "commit": "4952c4a59dc85a5a29079d81c8666c4898461ab6",
+  "retrieved": "2026-10-28",
+  "license": "MIT, Copyright (c) 2026 Pixel Point",
+  "files": [
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/button.tsx",
+      "local": "button.tsx",
+      "upstreamSha256": "e3f5e22c81256d669c7707deb5f364a88ec846354a8fa8a4e3970d498f7a13e7"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/input.tsx",
+      "local": "input.tsx",
+      "upstreamSha256": "58b453d4198d01c7e552f340ac94a1efb8d7c0816d96a14a5b8766d5aef3b4ba"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/composites/accordion.tsx",
+      "local": "accordion.tsx",
+      "upstreamSha256": "2b6c5641f64cebb58e0b9a104a90ae374f1507026e8cac64e5c00de38782fe6d"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/composites/dropdown-menu.tsx",
+      "local": "dropdown-menu.tsx",
+      "upstreamSha256": "0adaa2f739f18bbd0ffc19ff08e6d46c5858558dcf1ad50f598490252b1f994b"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/select.tsx",
+      "local": "select.tsx",
+      "upstreamSha256": "023fd0876f0c319377b0ee229b1885bcf33681e2215bea069dbd79856a0e0699"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/internal/button-loading.tsx",
+      "local": "internal/button-loading.tsx",
+      "upstreamSha256": "97fda16c6458bb109d40bc5f61fd2fba80e9cd3b8ea30e6227ef2102caabedc4"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/animated-loader.tsx",
+      "local": "animated-loader.tsx",
+      "upstreamSha256": "3a14aa553813bdcc3baf25b9f87345d3d95a7ea3e3f747a8ce279fd70f364468"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/selection-state.ts",
+      "local": "selection-state.ts",
+      "upstreamSha256": "f306c93daf3fda68d5ad237b9ddc2b922357e2b2de07811de044e43c4884eca9"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/primitive-arrow-icon.tsx",
+      "local": "primitive-arrow-icon.tsx",
+      "upstreamSha256": "881df5e0b2dde9547140d7873525c7a5c0e6b30e6b85d17df62a38998c8181c7"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/sanitize-composed-host-props.ts",
+      "local": "sanitize-composed-host-props.ts",
+      "upstreamSha256": "0446623dc111fdddfffc29aca88ce9116d58ae693555c74c8da570c48d3f8d68"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/components/primitives/composed-host-blocked-props.json",
+      "local": "composed-host-blocked-props.json",
+      "upstreamSha256": "82256be6b152242a797a0ac9f0405d0c936b1aa01aa106d996cc26a397a9dd79"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/lib/input-control-style.ts",
+      "local": "input-control-style.ts",
+      "upstreamSha256": "96c79f447c7a6c4aeaf8e1be08d4c51189c18a869f04957a3b8b303fb1fbf29a"
+    },
+    {
+      "upstream": "starter/src/toolcraft/ui/lib/utils.ts",
+      "local": "utils.ts",
+      "upstreamSha256": "d1f1e0d62cb8d8d1e04c26e14de842d8a151f75812d81b046c65b5d1fe8e4b27"
+    }
+  ],
+  "adaptations": [
+    "Import paths made local.",
+    "Toolcraft data-slot presentation adapted to scoped CSS; existing project Sass pipeline retained.",
+    "Select limited to used compound parts; optional runtime portal layering and scroll-fade helpers omitted.",
+    "ES2021 replaceAll changed to equivalent global regex replacement for existing ES2020 project target.",
+    "Indentation normalized for host repository lint rules; Fast Refresh warnings suppressed for upstream variant/helper exports."
+  ]
+}
