@@ -44,7 +44,7 @@ export default defineConfig({
     ? undefined
     : {
       command: "npm run start",
-      url: "http://localhost:8888/maputnik/",
+      url: "http://localhost:8888/",
       reuseExistingServer: !isCI,
       timeout: 120000,
     },

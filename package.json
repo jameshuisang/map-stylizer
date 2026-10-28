@@ -1,7 +1,7 @@
 {
-  "name": "maputnik",
+  "name": "map-stylizer",
   "version": "3.1.0",
-  "description": "A MapLibre GL visual style editor",
+  "description": "A visual map styling tool based on Maputnik and MapLibre",
   "type": "module",
   "main": "''",
   "scripts": {
@@ -21,11 +21,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/maplibre/maputnik"
+    "url": "https://github.com/jameshuisang/map-stylizer"
   },
   "author": "Lukas Martinelli",
   "license": "MIT",
-  "homepage": "https://github.com/maplibre/maputnik#readme",
+  "homepage": "https://github.com/jameshuisang/map-stylizer#readme",
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",
     "@codemirror/lint": "^6.9.7",
@@ -148,5 +148,6 @@
     "vite": "^8.3.5",
     "vite-plugin-istanbul": "^9.0.1",
     "vitest": "^5.0.5"
-  }
+  },
+  "displayName": "Map Stylizer"
 }

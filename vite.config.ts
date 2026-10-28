@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
   optimizeDeps: {
     exclude: ["maplibre-gl/dist/maplibre-gl-worker.mjs"],
   },
-  base: mode === "desktop" ? "/" : "/maputnik/",
+  base: mode === "desktop" ? "/" : (process.env.MAP_STYLIZER_BASE_PATH ?? "/"),
   define: {
     global: "globalThis"
   },

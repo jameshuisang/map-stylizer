@@ -8,6 +8,7 @@ on:
 jobs:
   release-check:
     name: Check if version changed
+    if: ${{ github.repository == 'maplibre/maputnik' }}
     runs-on: ubuntu-latest
     defaults:
       run:

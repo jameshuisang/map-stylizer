@@ -210,13 +210,13 @@ class AppToolbarInternal extends React.Component<AppToolbarInternalProps> {
           </button>
           <a
             className="maputnik-toolbar-logo"
-            target="blank"
+            target="_blank"
             rel="noreferrer noopener"
-            href="https://github.com/maplibre/maputnik"
+            href={pkgJson.repository.url}
           >
-            <img src={maputnikLogo} alt={t("Maputnik on GitHub")} />
+            <img src={maputnikLogo} alt="" />
             <h1>
-              <span className="maputnik-toolbar-name">{pkgJson.name}</span>
+              <span className="maputnik-toolbar-name">{pkgJson.displayName}</span>
               <span className="maputnik-toolbar-version">v{pkgJson.version}</span>
             </h1>
           </a>

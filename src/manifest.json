@@ -1,7 +1,7 @@
 {
-  "name": "Maputnik",
-  "short_name": "Maputnik",
-  "description": "Visual Map Designer",
+  "name": "Map Stylizer",
+  "short_name": "Map Stylizer",
+  "description": "Design and export custom MapLibre map styles",
   "start_url": ".",
   "display": "browser",
   "background_color": "#1c1f24",
