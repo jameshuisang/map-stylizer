@@ -41,6 +41,7 @@ type ToolbarLinkProps = {
   className?: string
   children?: React.ReactNode
   href?: string
+  wdKey?: string
 };
 
 class ToolbarLink extends React.Component<ToolbarLinkProps> {
@@ -50,7 +51,7 @@ class ToolbarLink extends React.Component<ToolbarLinkProps> {
       href={this.props.href}
       rel="noopener noreferrer"
       target="_blank"
-      data-wd-key="toolbar:link"
+      data-wd-key={this.props.wdKey ?? "toolbar:link"}
     >
       {this.props.children}
     </a>;
@@ -222,6 +223,7 @@ class AppToolbarInternal extends React.Component<AppToolbarInternalProps> {
           </a>
         </div>
         <div className="maputnik-toolbar__actions" role="navigation" aria-label="Toolbar">
+          <ToolbarLink wdKey="nav:minimal" href={`${import.meta.env.BASE_URL}minimal.html`}>Minimal</ToolbarLink>
           <ToolbarAction wdKey="nav:open" onClick={() => this.props.onToggleModal("open")}>
             <MdOpenInBrowser />
             <IconText>{t("Open")}</IconText>

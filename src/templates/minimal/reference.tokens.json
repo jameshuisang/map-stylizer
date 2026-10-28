@@ -1,0 +1,33 @@
+{
+  "name": "Minimal reference tokens",
+  "purpose": "Small semantic reference extracted from user-supplied website CSS. These are interface colors, not recovered map layer colors.",
+  "sources": [
+    {
+      "label": "Pasted CSS 1",
+      "bytes": 23193,
+      "sha256": "150d1b65a76207c1a6fb732dbe62274be4a0ea1025f8116fe46be7e825537e36"
+    },
+    {
+      "label": "Pasted CSS 2",
+      "bytes": 67550,
+      "sha256": "c723ac4c39e22d0ff44c6992bb8a68c4dcc7a6e79d30e9bbeea49be0b81016d1"
+    }
+  ],
+  "light": {
+    "surface": "#ffffff",
+    "surfaceSecondary": "#fbfbfd",
+    "surfaceMuted": "#f5f5f7",
+    "text": "#1d1d1f",
+    "textSecondary": "#6e6e73",
+    "border": "#e8e8ed",
+    "accent": "#0071e3",
+    "selection": "#d6eaff",
+    "mapShellBackground": "#f9f5ed"
+  },
+  "notes": [
+    "Short hex values normalized to six digits.",
+    "UI color values retained as reference; map land, water, parks, geometry, and road styling are independently authored.",
+    "Dark-mode rules are deliberately excluded from this first light Minimal template.",
+    "Compiler flags, framework prefixes, layout rules, responsive utility classes, resets, and proprietary font/symbol references are excluded."
+  ]
+}

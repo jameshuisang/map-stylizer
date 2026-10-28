@@ -263,6 +263,15 @@ export class PlaywrightHelper {
   };
 
   public when = {
+    downloadFile: async (testId: string) => {
+      const waiting = this.page.waitForEvent("download");
+      await this.testId(testId).click();
+      const download = await waiting;
+      const file = await download.path();
+      if (!file) throw new Error("Download did not produce a file");
+      return { name: download.suggestedFilename(), text: fs.readFileSync(file, "utf8") };
+    },
+
     visit: async (url: string) => {
       // Snapshot coverage before navigating, since a full page load resets it.
       await recordCoverageChunk(this.page);

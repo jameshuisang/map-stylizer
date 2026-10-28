@@ -249,7 +249,12 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
 
   render() {
     const t = this.props.t;
-    const styleOptions = publicStyles.map(style => {
+    const styleOptions = [{
+      id: "minimal",
+      title: "Minimal",
+      url: new URL("../../templates/minimal/outdoor-preview.json", import.meta.url).href,
+      thumbnail: new URL("../../templates/minimal/thumbnail.svg", import.meta.url).href
+    }, ...publicStyles].map(style => {
       return <PublicStyle
         key={style.id}
         url={style.url}

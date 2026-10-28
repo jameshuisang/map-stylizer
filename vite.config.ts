@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     sourcemap: true,
     rolldownOptions: {
+      input: { editor: "index.html", minimal: "minimal.html" },
       checks: { invalidAnnotation: false },
     },
   },
